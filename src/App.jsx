@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API = "https://YOUR-WORKER-URL.workers.dev";
+const API = "https://gr-backend.ajinstellus8.workers.dev";
 
 function App() {
   const [text, setText] = useState("");
