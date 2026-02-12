@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API = "https://YOUR-WORKER-URL.workers.dev";
+const API = "https://gr-backend.ajinstellus8.workers.dev";
 const R2_BASE = "https://pub-04739ba0915141ad846791d998083428.r2.dev";
 
 function App() {
