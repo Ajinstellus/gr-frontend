@@ -1,26 +1,30 @@
 import { useState, useEffect } from "react";
 
-const API = "https://gr-backend.ajinstellus8.workers.dev";
+const API = "https://YOUR-WORKER-URL.workers.dev";
+const R2_BASE = "https://pub-04739ba0915141ad846791d998083428.r2.dev";
 
 function App() {
   const [text, setText] = useState("");
   const [qrList, setQrList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // ---------------------------
+  // ==========================
   // LOAD QR LIST
-  // ---------------------------
+  // ==========================
   const loadQrs = async () => {
     try {
       const res = await fetch(`${API}/api/list`);
 
-      if (!res.ok) throw new Error("Failed to fetch QRs");
+      if (!res.ok) {
+        throw new Error("Failed to fetch QR list");
+      }
 
       const data = await res.json();
       setQrList(data);
     } catch (err) {
-      console.error(err.message);
+      setError(err.message);
     } finally {
       setInitialLoading(false);
     }
@@ -30,11 +34,13 @@ function App() {
     loadQrs();
   }, []);
 
-  // ---------------------------
-  // GENERATE
-  // ---------------------------
+  // ==========================
+  // GENERATE QR
+  // ==========================
   const generateQR = async () => {
-    if (!text.trim()) return alert("Enter text");
+    if (!text.trim()) {
+      return alert("Enter some text");
+    }
 
     try {
       setLoading(true);
@@ -44,12 +50,12 @@ function App() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          data: text
-        })
+        body: JSON.stringify({ data: text })
       });
 
-      if (!res.ok) throw new Error("Generation failed");
+      if (!res.ok) {
+        throw new Error("QR generation failed");
+      }
 
       await res.json();
 
@@ -65,16 +71,18 @@ function App() {
     }
   };
 
-  // ---------------------------
-  // DELETE
-  // ---------------------------
+  // ==========================
+  // DELETE QR
+  // ==========================
   const deleteQr = async (id) => {
     try {
       const res = await fetch(`${API}/api/qr/${id}`, {
         method: "DELETE"
       });
 
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
 
       loadQrs();
 
@@ -87,34 +95,77 @@ function App() {
     <div style={{ padding: "40px", fontFamily: "Arial" }}>
       <h1>QR Bulk System 🚀</h1>
 
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Enter text"
-        style={{ padding: 8, width: 250 }}
-      />
+      {/* INPUT SECTION */}
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Enter text"
+          style={{
+            padding: "8px",
+            width: "250px",
+            marginRight: "10px"
+          }}
+        />
 
-      <button
-        onClick={generateQR}
-        style={{ marginLeft: 10, padding: 8 }}
-        disabled={loading}
-      >
-        {loading ? "Sending..." : "Generate"}
-      </button>
+        <button
+          onClick={generateQR}
+          disabled={loading}
+          style={{
+            padding: "8px 12px",
+            cursor: "pointer"
+          }}
+        >
+          {loading ? "Generating..." : "Generate"}
+        </button>
+      </div>
 
       <hr />
 
+      {/* LIST SECTION */}
       <h2>Latest QRs</h2>
 
       {initialLoading && <p>Loading...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {qrList.length === 0 && !initialLoading && (
+        <p>No QRs found</p>
+      )}
 
       {qrList.map((qr) => (
-        <div key={qr.id} style={{ marginBottom: 10 }}>
-          <b>{qr.data}</b>
+        <div
+          key={qr.id}
+          style={{
+            marginBottom: "20px",
+            padding: "10px",
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+            width: "300px"
+          }}
+        >
+          <p><b>Text:</b> {qr.data}</p>
+
+          {qr.fileName && (
+            <img
+              src={`${R2_BASE}/${qr.fileName}`}
+              alt="QR Code"
+              width="150"
+              style={{ marginBottom: "10px" }}
+            />
+          )}
+
+          <br />
 
           <button
-            style={{ marginLeft: 10 }}
             onClick={() => deleteQr(qr.id)}
+            style={{
+              padding: "6px 10px",
+              backgroundColor: "#ff4d4f",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+              borderRadius: "4px"
+            }}
           >
             Delete
           </button>
